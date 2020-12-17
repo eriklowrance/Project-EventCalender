@@ -1,14 +1,34 @@
 // Requiring our models and passport as we've configured it
 var db = require("../models");
 var passport = require("../config/passport");
+const axios = require("axios").default;
+const clientid = process.env.CLIENT_ID;
+const token = process.env.TWITCH_TOKEN;
+// url needed to renew token once it expires
+// const tokenurl = `https://id.twitch.tv/oauth2/token?client_id=${clientid}&client_secret=${clientsecret}&grant_type=client_credentials`;
+
+
 
 module.exports = function(app) {
   // Using the passport.authenticate middleware with our local strategy.
   // If the user has valid login credentials, send them to the members page.
   // Otherwise the user will be sent an error
-  app.post("/api/login", passport.authenticate("local"), function(req, res) {
-    res.json(req.user);
-  });
+        app.get("/api/game/:game", async function (req, res) {
+          // use to get new token once it expires
+          // const { tokendata } = await axios.post(tokenurl);
+          // const accessToken = tokendata.access_token;
+          const gamesEndpoint = "https://api.twitch.tv/helix/games?name=" + req.params.game;
+          const { data } = await axios.get(gamesEndpoint, {
+            headers: {
+              Authorization: "Bearer " + token,
+              "Client-Id": clientid,
+            },
+          });
+          res.json(data);
+        });
+  // app.post("/api/login", passport.authenticate("local"), function(req, res) {
+  //   res.json(req.user);
+  // });
 
   // Route for signing up a user. The user's password is automatically hashed and stored securely thanks to
   // how we configured our Sequelize User Model. If the user is created successfully, proceed to log the user in,
